@@ -2,35 +2,43 @@ server:
   port: 8095
 
 spring:
-  #数据库连接
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    #使用dynamic-datasource框架
-    dynamic:
-      #设置默认数据源或者数据源组，read
-      primary: read
-      # 严格匹配数据源，默认false，true未匹配到指定数据源时抛异常，false使用默认数据源
-      strict: false
-      datasource:
-        read:
-          url: jdbc:mysql://localhost:3306/eraser?useSSL=false&serverTimezone=GMT%2B8
-          username: root
-          password: passw@rd
-          initial-size: 3
-          min-idle: 1
-          max-active: 20
-          test-on-borrow: true
-          driver-class-name: com.mysql.cj.jdbc.Driver
-        write:
-          url: jdbc:mysql://localhost:3306/ems-dev?useSSL=false&serverTimezone=GMT%2B8
-          username: root
-          password: passw@rd
-          initial-size: 3
-          min-idle: 1
-          max-active: 20
-          test-on-borrow: true
-          driver-class-name: com.mysql.cj.jdbc.Driver
-
-
-
-
+  #各种分库分表策略
+  shardingsphere:
+    #配置数据源
+    datasource:
+      names: m1,m2
+      m1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/coursedb?useSSL=false&serverTimezone=GMT%2B8
+        username: root
+        password: passw@rd
+      m2:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/coursedb2?useSSL=false&serverTimezone=GMT%2B8
+        username: root
+        password: passw@rd
+    #真实表分布，分库、分表
+    sharding:
+      tables:
+        course:
+          actual-data-nodes: m$->{1..2}.course_$->{1..2}
+          key-generator:
+            column: cid
+            type: SNOWFLAKE
+            props:
+              worker.id: 1
+          #inline分片策略(分表)
+          table-strategy:
+            inline:
+              sharding-column: cid
+              #将数据分配到两张表
+              algorithm-expression: course_$->{cid%2+1}
+              #将数据分配到四张表(这里需要注意下groovy直接用/除法，计算出来的是浮点数，要计算出整数需要使用.intdiv)
+              #algorithm-expression: course_$->{((cid+1)%4).intdiv(2)+1}
+          #inline分片策略(分库)
+          database-strategy:
+            inline:
+              sharding-column: cid
+              algorithm-expression: course_$->{cid%2+1}
