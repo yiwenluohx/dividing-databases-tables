@@ -28,7 +28,8 @@ spring:
             column: cid
             type: SNOWFLAKE
             props:
-              worker.id: 1
+              worker:
+                id: 1
           #inline分片策略(分表)
           table-strategy:
             inline:
@@ -36,9 +37,11 @@ spring:
               #将数据分配到两张表
               algorithm-expression: course_$->{cid%2+1}
               #将数据分配到四张表(这里需要注意下groovy直接用/除法，计算出来的是浮点数，要计算出整数需要使用.intdiv)
-              #algorithm-expression: course_$->{((cid+1)%4).intdiv(2)+1}
+#              algorithm-expression: course_$->{((cid+1)%4).intdiv(2)+1}
           #inline分片策略(分库)
           database-strategy:
             inline:
               sharding-column: cid
-              algorithm-expression: course_$->{cid%2+1}
+              algorithm-expression: m$->{cid%2+1}
+    props:
+      sql.show: true

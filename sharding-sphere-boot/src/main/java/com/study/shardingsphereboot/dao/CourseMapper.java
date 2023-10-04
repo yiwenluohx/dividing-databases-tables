@@ -13,4 +13,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CourseMapper extends BaseMapper<Course> {
 
+    /**
+     * 插入
+     * @param entity
+     * @return int
+     */
+    int addCourse(Course entity);
 }
