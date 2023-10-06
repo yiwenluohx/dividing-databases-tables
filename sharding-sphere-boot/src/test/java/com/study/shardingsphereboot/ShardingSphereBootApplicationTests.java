@@ -64,6 +64,9 @@ class ShardingSphereBootApplicationTests {
         courses.forEach(k -> System.out.println(JSON.toJSONString(k)));
     }
 
+    /**
+     * standard查询策略
+     */
     @Test
     public void queryRange() {
         QueryWrapper<Course> wrapper = new QueryWrapper<Course>();
@@ -71,7 +74,20 @@ class ShardingSphereBootApplicationTests {
         wrapper.between("cid", 916371711882956801L, 916371711916511233L);
         List<Course> courses = courseMapper.selectList(wrapper);
         courses.forEach(k -> System.out.println(JSON.toJSONString(k)));
-
     }
+
+    /**
+     * 复杂分片策略，所有查询条件只能有一个统一的类型
+     */
+    @Test
+    public void queryCourdeComplex() {
+        QueryWrapper<Course> wrapper = new QueryWrapper<Course>();
+        wrapper.orderByDesc("user_id");
+        wrapper.in("cid", 916371711882956801L, 916371711866179584L, 12487L);
+        wrapper.between("user_id", 3L, 8L);
+        List<Course> courses = courseMapper.selectList(wrapper);
+        courses.forEach(k -> System.out.println(JSON.toJSONString(k)));
+    }
+
 
 }
