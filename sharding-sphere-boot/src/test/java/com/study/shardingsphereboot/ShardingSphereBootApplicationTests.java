@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.study.shardingsphereboot.dao.CourseMapper;
 import com.study.shardingsphereboot.model.Course;
+import org.apache.shardingsphere.api.hint.HintManager;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -89,5 +90,20 @@ class ShardingSphereBootApplicationTests {
         courses.forEach(k -> System.out.println(JSON.toJSONString(k)));
     }
 
-
+    /**
+     * 强制路由策略，脱离sql自己指定分片策略
+     */
+    @Test
+    public void queryCourseByHint() {
+        HintManager hintManager = HintManager.getInstance();
+        //注意这两个分片，dataSourceBaseShardingValue用于强制分库
+        //用于查m1数据源
+        hintManager.addDatabaseShardingValue("course", "1");
+        //强制查course_1表
+        hintManager.addTableShardingValue("course", "1");
+        List<Course> courses = courseMapper.selectList(null);
+        courses.forEach(k -> System.out.println(JSON.toJSONString(k)));
+        //线程安全，用完关闭
+        hintManager.close();
+    }
 }
